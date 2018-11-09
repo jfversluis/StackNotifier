@@ -1,5 +1,14 @@
 'use strict';
 
+// Wire up click on toolbar icon
+chrome.browserAction.onClicked.addListener(function (tab) { 
+    if (chrome.runtime.openOptionsPage) {
+        chrome.runtime.openOptionsPage();
+    } else {
+        window.open(chrome.runtime.getURL('app/settings.html'));
+    }
+});
+
 // Wire up things for when Chrome is started
 chrome.runtime.onStartup.addListener(function () {
     init();
@@ -9,6 +18,7 @@ chrome.runtime.onStartup.addListener(function () {
 chrome.runtime.onInstalled.addListener(function () {
     localStorage["enableExtension"] = "true";
     localStorage["extensionAppKey"] = "NuP)jiIOUwDL6rNI0nzIuQ((";
+    localStorage["interval"] = "15";
 
     init();
 
@@ -20,33 +30,38 @@ chrome.alarms.onAlarm.addListener(function (alarm) {
         return;
     }
 
-    if (alarm.name === "checkNewQuestions") {
+    if (alarm.name === newQuestionsAlarmName) {
 
+        // https://api.stackexchange.com/docs/search
         $.getJSON("https://api.stackexchange.com/2.2/search?key=" + localStorage["extensionAppKey"] + "&fromdate=" + localStorage["lastCheck"]
-            + "&order=desc&sort=creation&tagged=" + localStorage["watchedTags"] + "&site=stackoverflow&access_token=" + localStorage["SOAccessToken"] + "", function (data) {
+            + "&order=desc&sort=creation&tagged=" + localStorage["watchedTags"] + "&site=stackoverflow&access_token=" + localStorage["SOAccessToken"] + "&filter=!9Z(-wwYGT", function (data) {
                 var newQuestionsFound = data.items.length >= 1;
 
-                console.log(data.quota_remaining);
+                //console.log(data.quota_remaining);
 
                 if (data.items.length == 1) {
-                    chrome.notifications.create("", {
+                    localStorage[data.items[0].question_id] = data.items[0].link;
+
+                    chrome.notifications.create(data.items[0].question_id.toString(), {
                         type: "basic",
-                        iconUrl: data.items[0].owner.profile_image,
+                        iconUrl: "/img/icon128.png",
                         title: data.items[0].title,
-                        message: "A new question in one of your tags was added"
-                    }, function() {
-                        window.open(data.items[0].link);
+                        message: data.items[0].body
                     });
                 }
                 else if (data.items.length > 1) {
-                    // TODO make more useful
+                    var allItems = [];
+
+                    $.each(data.items, function(index, item) {
+                        allItems.push({"title": item.title, "message":""});
+                    });
+
                     chrome.notifications.create("", {
-                        type: "basic",
+                        type: "list",
                         iconUrl: "/img/icon128.png",
                         title: "New questions",
-                        message: "New questions in one or more of your tags were added"
-                    }, function () {
-                        window.open("https://stackoverflow.com");
+                        message: "New questions in one or more of your tags were added",
+                        items: allItems
                     });
                 }
 
@@ -57,31 +72,16 @@ chrome.alarms.onAlarm.addListener(function (alarm) {
     }
 });
 
+// Wire up clicking on a desktop notification
+chrome.notifications.onClicked.addListener(function (notificationId) {
+    if (localStorage[notificationId] != "" && localStorage[notificationId] != undefined) {
+        window.open(localStorage[notificationId]);
+        localStorage.removeItem(notificationId);
+    }
+});
+
 function init() {
     updateLastCheck();
-
-    chrome.alarms.create("checkNewQuestions", {
-        periodInMinutes: 1 // TODO user determined interval
-    });
-    // chrome.webNavigation.onBeforeNavigate.addListener(function (details) {
-    //     if (localStorage["enableExtension"] != "true")
-    //         return;
-
-    //     if (localStorage["unwantedLanguage"] === "" || localStorage["preferedLanguage"] === ""
-    //         || localStorage["unwantedLanguage"] === undefined || localStorage["preferedLanguage"] === undefined) {
-    //         return;
-    //     }
-
-    //     if (details.url.indexOf("stackoverflow.com") != -1) {
-    //         if (details.url.indexOf(localStorage["unwantedLanguage"]) != -1) {
-    //             chrome.tabs.update(details.tabId, {
-    //                 url: details.url.replace(new RegExp(localStorage["unwantedLanguage"], "gi"), localStorage["preferedLanguage"])
-    //             });
-    //         }
-    //     }
-    // })
-}
-
-function updateLastCheck() {
-    localStorage["lastCheck"] = Math.floor(Date.now() / 1000);
+    
+    setAlarm(newQuestionsAlarmName, localStorage["interval"]);
 }

@@ -16,13 +16,10 @@
                     <h1 class="display-4">StackNotifier</h1>
                     <p class="lead">Get notified about your favorite tags on StackOverflow</p>
                     <hr class="my-4">
-                    <p>When navigating to docs.microsoft.com, the page might be translated into your native language, even through automated translations. I, however, like to just review the docs in English. There is no way to force this through Microsoft Docs right now. That is why I created this plugin.<br />
+                    <p>I used to keep an open tab to StackOverflow and refresh it every once in a while. So, I decided to turn it into a Chrome extension so data will come to me instead of the other way around!
                         <br />
-                        Simply choose a language that you do not want to see and a language that you _do_ want to see.
-                        Whenever you reach the Docs in the unwanted language, it will automaticall switch to your
-                        preferred language.<br />
-                        <br />
-                        <strong>Note: you are responsible for entering right language codes in the textboxes, there is no validation. Entering invalid values will lead to unwanted behavior.</strong>
+                        Simply add the tag(s) you want to be notified about separated by semicolons, determine a refresh interval and you're done!<br /><br />
+                        <strong>Note: you are responsible for entering right values in the textboxes, there is no validation. Entering invalid values will lead to unwanted behavior.</strong>
                     </p>
                     <small>This extension is created by <a href="https://gerald.verslu.is" target="_blank">Gerald Versluis</a> and open-source on GitHub: <a href="https://github.com/jfversluis/StackNotifier" target="_blank">https://github.com/jfversluis/StackNotifier</a></small>
                 </div>
@@ -36,6 +33,21 @@
                     Enable extension
                 </label>
             </div>
+
+            <div class="row">
+                <div class="col">
+                    <div class="form-group" id="loginGroup">
+                        <button type="button" class="btn btn-primary" id="loginButton">Login to StackOverflow account</button>
+                        <small id="intervalHelp" class="form-text text-muted">By logging in you can make more requests per day, this unlocks setting the interval manually</small>
+                    </div>
+
+                    <div class="form-group" id="logoutGroup" style="display: none;">
+                        <label for="logoutButton">Logged in as <strong id="username"></strong></label>
+                        <button type="button" class="btn btn-link" id="logoutButton">Logout</button>
+                    </div>
+                </div>
+            </div>
+
             <div class="row">
                 <div class="col">
                     <div class="form-group" id="watchedTagsGroup">
@@ -48,7 +60,7 @@
                     <div class="form-group" id="intervalGroup">
                         <label for="intervalPicker">Interval (in minutes):</label>
                         <input type="text" class="form-control" id="interval" placeholder="For example: 5" required />
-                        <small id="intervalHelp" class="form-text text-muted">Interval, in minutes, on which a refresh is executed.</small>
+                        <small id="intervalHelp" class="form-text text-muted">Interval, in minutes, on which a refresh is executed. When not logged in a minimum of 15 mins is in place to not exceed the rate limit.</small>
                     </div>
                 </div>
             </div>
@@ -64,6 +76,9 @@
             <div class="alert alert-warning" role="alert" id="warning-alert" style="display: none;">
                 The form is not valid, double check all values and try to save again.
             </div>
+            <div class="alert alert-warning" role="alert" id="loggedout-alert" style="display: none;">
+                Logged out successfully
+            </div>
         </form>
     </div>
     <script src="/lib/jquery-3.0.0.min.js"></script>
@@ -71,6 +86,7 @@
     <script src="/lib/bootstrap-4.1.3-dist/js/bootstrap.min.js"></script>
     <script src="/lib/anno/js/anno.js"></script>
     <script src="/lib/stackoverflow/all.js"></script>
+    <script src="common.js"></script>
     <script src="settings.js"></script>
 </body>
 

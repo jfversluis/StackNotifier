@@ -8,18 +8,17 @@
         "notifications",
         "alarms",
         "https://api.stackexchange.com/*",
-        "http://*/*",
-        "https://*/*"
+        "https://stackoverflow.com/*"
     ],
     "background": {
         "scripts": [
             "lib/jquery-3.0.0.min.js",
+            "app/common.js",
             "app/background.js"
         ]
     },
     "options_page": "app/settings.html",
     "browser_action": {
-        "default_popup": "app/popup.html",
         "default_icon": {
             "16": "img/icon16.png",
             "32": "img/icon32.png",
