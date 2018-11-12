@@ -76,6 +76,7 @@ chrome.alarms.onAlarm.addListener(function (alarm) {
 chrome.notifications.onClicked.addListener(function (notificationId) {
     if (localStorage[notificationId] != "" && localStorage[notificationId] != undefined) {
         window.open(localStorage[notificationId]);
+        chrome.notifications.clear(notificationId);
         localStorage.removeItem(notificationId);
     }
 });
